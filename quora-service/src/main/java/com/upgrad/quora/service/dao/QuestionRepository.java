@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+/**
+ *  QuestionRepository, used to perform CRUD operation on QuestionEntity
+ */
 public interface QuestionRepository  extends JpaRepository<QuestionEntity, Integer> {
     QuestionEntity findQuestionByUuid(String uuid);
     List<QuestionEntity> findAllQuestionByUserEntity(UserEntity user);
