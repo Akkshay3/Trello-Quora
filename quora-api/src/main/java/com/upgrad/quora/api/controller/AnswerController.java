@@ -1,9 +1,6 @@
 package com.upgrad.quora.api.controller;
 
-import com.upgrad.quora.api.model.AnswerEditRequest;
-import com.upgrad.quora.api.model.AnswerEditResponse;
-import com.upgrad.quora.api.model.AnswerRequest;
-import com.upgrad.quora.api.model.AnswerResponse;
+import com.upgrad.quora.api.model.*;
 import com.upgrad.quora.service.business.AnswerService;
 import com.upgrad.quora.service.entity.AnswerEntity;
 import com.upgrad.quora.service.exception.AnswerNotFoundException;
@@ -67,4 +64,26 @@ public class AnswerController {
         return new ResponseEntity<AnswerEditResponse>(answerEditResponse, HttpStatus.OK);
     }
 
+    /**
+     * Delete answer
+     *
+     * @param answerId : Answer ID that you want to Delete
+     * @param accessToken : access-token to authenticate
+     * @throws AuthorizationFailedException : Returns authorization failed exception
+     * @throws AnswerNotFoundException : If answer id is invalid returns invalid answer id response
+     * @return answer deleted response
+     */
+    @RequestMapping(
+            method = RequestMethod.DELETE,
+            path = "/answer/delete/{answerId}",
+            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<AnswerDeleteResponse> deleteAnswer(
+            @RequestHeader("authorization") final String accessToken,
+            @PathVariable("answerId") String answerId)
+            throws AuthorizationFailedException, AnswerNotFoundException {
+        AnswerEntity answerEntity = answerService.deleteAnswer(answerId, accessToken);
+        AnswerDeleteResponse answerDeleteResponse =
+                new AnswerDeleteResponse().id(answerEntity.getUuid()).status("ANSWER DELETED");
+        return new ResponseEntity<AnswerDeleteResponse>(answerDeleteResponse, HttpStatus.OK);
+    }
 }
