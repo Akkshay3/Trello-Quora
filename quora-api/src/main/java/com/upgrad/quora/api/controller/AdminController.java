@@ -3,9 +3,6 @@ package com.upgrad.quora.api.controller;
 
 import com.upgrad.quora.api.model.UserDeleteResponse;
 import com.upgrad.quora.service.business.AdminService;
-import com.upgrad.quora.service.business.AuthorizationService;
-import com.upgrad.quora.service.business.SignoutService;
-import com.upgrad.quora.service.entity.UserAuthTokenEntity;
 import com.upgrad.quora.service.entity.UserEntity;
 import com.upgrad.quora.service.exception.AuthorizationFailedException;
 import com.upgrad.quora.service.exception.UserNotFoundException;
@@ -24,23 +21,27 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
-    @Autowired
-    private AuthorizationService authorizationService;
-
     /*This endpoint is used to delete a user from the Quora application if the user has signed in and has valid user access token
     and has admin role. If any of these conditions fail, the corresponding exception is thrown.
     This endpoint (a DELETE request), requests path variable userId as a string for the corresponding user that needs
     to be deleted and access token of the signed in user as a String in authorization Request Header. It returns the uuid
     of the user that has been deleted and message in the JSON response with the corresponding HTTP status*/
-    @RequestMapping(method = RequestMethod.DELETE, path = "/admin/user/{userId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<UserDeleteResponse> deleteUser(@PathVariable("userId") final String uuid, @RequestHeader("authorization") final String authorization) throws AuthorizationFailedException, UserNotFoundException {
 
-        String UUID = adminService.deleteUser(uuid, authorization);
-        /*UserDeletResposnse will have the message that user has been succeefully deleted*/
-        final UserDeleteResponse userDeleteResponse = new UserDeleteResponse().id(UUID).status("USER SUCCESSFULLY DELETED");
-
-        /*Returning the message in the JSON response with the corresponding HTTP status*/
+    /**
+     * Get the user detail by user id.
+     *
+     * @param userId : user id of the user
+     * @param accessToken : access-token to authenticate the user
+     * @throws AuthorizationFailedException : user authentication exception
+     * @throws UserNotFoundException : will through a user not found exception
+     * @return UserDeleteResponse
+     */
+    @DeleteMapping(path = "/admin/user/{userId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<UserDeleteResponse> deleteUser(@PathVariable("userId") final String userId,
+                                                         @RequestHeader("authorization") final String accessToken) throws AuthorizationFailedException, UserNotFoundException {
+        UserEntity deletedUser = adminService.deleteUser(userId, accessToken);
+        UserDeleteResponse userDeleteResponse =
+                new UserDeleteResponse().id(deletedUser.getUuid()).status("USER SUCCESSFULLY DELETED");
         return new ResponseEntity<UserDeleteResponse>(userDeleteResponse, HttpStatus.OK);
-
     }
 }
