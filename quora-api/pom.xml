@@ -102,12 +102,12 @@
 
                 <executions>
                     <execution>
-                        <id>user</id>
+                        <id>userEntity</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/endpoints/user.json</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/endpoints/userEntity.json</inputSpec>
                             <language>spring</language>
                         </configuration>
                     </execution>
