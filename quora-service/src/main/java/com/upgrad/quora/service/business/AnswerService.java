@@ -7,6 +7,7 @@ import com.upgrad.quora.service.dao.UserRepository;
 import com.upgrad.quora.service.entity.AnswerEntity;
 import com.upgrad.quora.service.entity.QuestionEntity;
 import com.upgrad.quora.service.entity.UserAuthEntity;
+import com.upgrad.quora.service.exception.AnswerNotFoundException;
 import com.upgrad.quora.service.exception.AuthorizationFailedException;
 import com.upgrad.quora.service.exception.InvalidQuestionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,5 +60,39 @@ public class AnswerService {
         answerEntity.setQuestionEntity(questionEntity);
         answerEntity.setUserEntity(userAuthEntity.getUserEntity());
         return answerRepository.save(answerEntity);
+    }
+
+    /**
+     * Update answer into the database
+     *
+     * @param answerId : questionid that you want to answer
+     * @param newAnswer : the answer body
+     * @param accessToken : access-token for authentication
+     * @throws AuthorizationFailedException : if authentication is failed
+     * @throws AnswerNotFoundException : if answer id is invalid
+     * @return returns updated response for the answer
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AnswerEntity editAnswer(
+            final String accessToken, final String answerId, final String newAnswer)
+            throws AnswerNotFoundException, AuthorizationFailedException {
+        UserAuthEntity userAuthEntity = authRepository.findByAccessToken(accessToken);
+        if (userAuthEntity == null) {
+            throw new AuthorizationFailedException("ATHR-001", "User has not signed in");
+        } else if (userAuthEntity.getLogoutAt() != null) {
+            throw new AuthorizationFailedException(
+                    "ATHR-002", "User is signed out.Sign in first to edit an answer");
+        }
+        AnswerEntity answerEntity = answerRepository.findAnswerByUuid(answerId);
+        if (answerEntity == null) {
+            throw new AnswerNotFoundException("ANS-001", "Entered answer uuid does not exist");
+        }
+        if (!answerEntity.getUserEntity().getUuid().equals(userAuthEntity.getUserEntity().getUuid())) {
+            throw new AuthorizationFailedException(
+                    "ATHR-003", "Only the answer owner can edit the answer");
+        }
+        answerEntity.setAnswer(newAnswer);
+        answerRepository.save(answerEntity);
+        return answerEntity;
     }
 }
