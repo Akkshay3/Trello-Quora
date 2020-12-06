@@ -27,6 +27,12 @@ public class UserAuthService {
     @Autowired
     private PasswordCryptographyProvider passwordCryptographyProvider;
 
+    /**
+     *
+     * @param userEntity
+     * @return uuid of created user
+     * @throws SignUpRestrictedException
+     */
     public String signup(UserEntity userEntity) throws SignUpRestrictedException {
         if (isUserNameInUse(userEntity.getUserName())) {
             throw new SignUpRestrictedException(
@@ -47,16 +53,22 @@ public class UserAuthService {
         return createdUserEntity.getUuid();
     }
 
-    // checks whether the username exist in the database
+    /**
+     * checks whether the username exist in the database
+     * @param userName
+     * @return boolean
+     */
     private boolean isUserNameInUse(final String userName) {
         return null!= userRepository.findByUserName(userName);
-        //return userDao.getUserByUserName(userName) != null;
     }
 
-    // checks whether the email exist in the database
+    /**
+     * checks whether the email exist in the database
+     * @param email
+     * @return boolean
+     */
     private boolean isEmailInUse(final String email) {
         return null!= userRepository.findByEmail(email);
-        // return userDao.getUserByEmail(email) != null;
     }
 
     /**
@@ -68,7 +80,7 @@ public class UserAuthService {
      * @return UserAuthEntity access-token and singin response.
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public UserAuthEntity signin(final String username, final String password)
+    public UserAuthEntity signIn(final String username, final String password)
             throws AuthenticationFailedException {
 
         UserEntity userEntity = userRepository.findByUserName(username);
@@ -98,8 +110,14 @@ public class UserAuthService {
         return userAuthEntity;
     }
 
+    /**
+     *
+     * @param accessToken : required to signout the user
+     * @throws SignOutRestrictedException : if the access-token is not found in the DB.
+     * @return UserEntity : that user is signed out.
+     */
     @Transactional(propagation = Propagation.REQUIRED)
-    public UserEntity signout(final String accessToken) throws SignOutRestrictedException {
+    public UserEntity signOut(final String accessToken) throws SignOutRestrictedException {
         UserAuthEntity userAuthEntity = userAuthRepository.findByAccessToken(accessToken);
         if (userAuthEntity == null) {
             throw new SignOutRestrictedException("SGR-001", "User is not Signed in");
