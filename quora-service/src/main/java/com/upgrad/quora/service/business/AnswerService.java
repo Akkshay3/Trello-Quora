@@ -95,4 +95,41 @@ public class AnswerService {
         answerRepository.save(answerEntity);
         return answerEntity;
     }
+
+    /**
+     * Delete answer from the database
+     *
+     * @param answerId : answerId of the answer that you want to delete
+     * @param accessToken : access-token for authentication
+     * @throws AuthorizationFailedException : if authentication is failed
+     * @throws AnswerNotFoundException : if answer id is invalid
+     * @return returns deleted response for the answer
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public AnswerEntity deleteAnswer(final String answerId, final String accessToken)
+            throws AuthorizationFailedException, AnswerNotFoundException {
+
+        UserAuthEntity userAuthEntity = authRepository.findByAccessToken(accessToken);
+        if (userAuthEntity == null) {
+            throw new AuthorizationFailedException("ATHR-001", "User has not signed in");
+        } else if (userAuthEntity.getLogoutAt() != null) {
+            throw new AuthorizationFailedException(
+                    "ATHR-002", "User is signed out.Sign in first to delete an answer");
+        }
+
+        AnswerEntity answerEntity = answerRepository.findAnswerByUuid(answerId);
+        if (answerEntity == null) {
+            throw new AnswerNotFoundException("ANS-001", "Entered answer uuid does not exist");
+        }
+        if (userAuthEntity.getUserEntity().getRole().equals("admin")
+                || answerEntity.getUserEntity().getUuid()
+                .equals(userAuthEntity.getUserEntity().getUuid())) {
+             answerRepository.delete(answerEntity);
+             return answerEntity;
+        } else {
+            throw new AuthorizationFailedException(
+                    "ATHR-003", "Only the answer owner or admin can delete the answer");
+        }
+    }
+
 }
